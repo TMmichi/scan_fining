@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>scan_fining</name>
+  <version>1.0.0</version>
+  <description>Masking scan data from global costmap</description>
+  <maintainer email="ljh_0921@naver.com">Jeonghoon Lee</maintainer>
+  <author>Jeonghoon Lee</author>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>tf</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>tf</exec_depend>
+
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <export>
+  </export>
+</package>
