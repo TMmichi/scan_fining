@@ -17,7 +17,7 @@ catkin_package(
    DEPENDS system_lib
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(scan_fining src/scan_fining.cpp include/scan_fining.h include/point.h)
 target_link_libraries(scan_fining ${catkin_LIBRARIES})

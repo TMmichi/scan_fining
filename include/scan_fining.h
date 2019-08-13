@@ -21,6 +21,7 @@ private:
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void globalcostmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& costmap);
   void processPoints(const sensor_msgs::LaserScan::ConstPtr& scan);
+  void maskingScan();
   void transformToWorld();
   void transformToScan();
   void publishFinedScan(const sensor_msgs::LaserScan::ConstPtr& scan);
@@ -47,6 +48,8 @@ private:
 
   double p_max_scanner_range_;    // Restrictions on laser scanner
 
+  bool debugging_ = false;
+
   // Variables
   std::vector<scan_fining::Point> initial_points_;
   std::vector<std::vector<int>> costmap_;
@@ -54,7 +57,8 @@ private:
   int global_width_;
   float global_resolution_;
   std::vector<scan_fining::Point> temp_points_;
-  std::vector<scan_fining::Point> costmap_points_;
+  //std::vector<scan_fining::Point> costmap_points_;
+  geometry_msgs::PointStamped scanner_origin_to_global_;
 };
 
 } // namespace obstacle_detector
