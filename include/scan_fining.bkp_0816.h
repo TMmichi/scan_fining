@@ -36,10 +36,7 @@ private:
   ros::Publisher  fined_scan_pub_;
 
   //Transform class
-  ros::Time time_toworld_;
-  ros::Time time_toscan_;
-  tf::TransformListener tf_listener_toworld_;
-  tf::TransformListener tf_listener_toscan_;
+  tf::TransformListener tf_listener_;
 
   // Parameters
   std::string p_world_frame_;     // Name of the world coordinate frame

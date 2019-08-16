@@ -51,11 +51,20 @@ void ScanFiner::globalcostmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& c
   global_resolution_ = costmap_input->info.resolution;
 
   for (int j=0; j<global_height_; j++){
-    vector<int> costmap_width_temp_;
+    vector<int> costmap_width_temp_; //should be confirmed - temporally allocated vetor from for loop used as a data
     for (int i=0; i<global_width_; i++){
       costmap_width_temp_.push_back(costmap_input->data[i+j*global_width_]);
+      //costmap[j][i] = costmap_points_[i+j*width];
     }
     costmap_.push_back(costmap_width_temp_);
+  }
+
+  if (debugging_){
+    for (vector<int>& vector_ : costmap_){
+      for (int i : vector_){
+        cout << i << endl;
+      }
+    }
   }
 }
 
@@ -75,44 +84,54 @@ void ScanFiner::transformToWorld() {
   geometry_msgs::PointStamped point_l;  // Point in local (scanner) coordinate frame
   geometry_msgs::PointStamped point_w;  // Point in global (world) coordinate frame
 
-  time_toworld_ = ros::Time::now();
-
-  point_l.header.stamp = time_toworld_;
+  point_l.header.stamp = ros::Time::now();
   point_l.header.frame_id = p_scanner_frame_;
 
-  point_w.header.stamp = time_toworld_;
+  point_w.header.stamp = ros::Time::now();
   point_w.header.frame_id = p_world_frame_;
 
   try {
-    tf_listener_toworld_.waitForTransform(p_world_frame_, p_scanner_frame_, ros::Time::now(), ros::Duration(3.0));
-    tf_listener_toscan_.waitForTransform(p_scanner_frame_, p_world_frame_, ros::Time::now(), ros::Duration(3.0));
+    tf_listener_.waitForTransform(p_world_frame_, p_scanner_frame_, ros::Time::now(), ros::Duration(3.0));
     for (const Point& point_ : initial_points_){
       point_l.point.x = point_.x;
       point_l.point.y = point_.y;
-      tf_listener_toworld_.transformPoint(p_world_frame_, point_l, point_w);
+      tf_listener_.transformPoint(p_world_frame_, point_l, point_w);
+      if (debugging_){
+        cout << "local point : " << point_l << endl;
+        cout << "global point : " << point_w << endl;
+      }
       temp_points_.push_back(Point(point_w.point.x,point_w.point.y));
+    }
+    if (debugging_){
+      cout << "temp_points_ : " << endl;
+      for (const Point& point_ : temp_points_){
+        cout << point_ << endl;
+      }
     }
     geometry_msgs::PointStamped origin_;
     origin_.header.stamp = ros::Time::now();
     origin_.header.frame_id = p_scanner_frame_;
     origin_.point.x = 0;
     origin_.point.y = 0;
-    tf_listener_toworld_.transformPoint(p_world_frame_, origin_, scanner_origin_to_global_);
+    tf_listener_.transformPoint(p_world_frame_, origin_, scanner_origin_to_global_);
   }
   catch (tf::TransformException ex) {
-    cout << "TO WORLD: not transformed ";
     ROS_ERROR("%s",ex.what());
-    //ros::Duration(0.1).sleep();
+    cout << "not transformed" << endl;
+    ros::Duration(0.2).sleep();
   }
 }
 
 
 void ScanFiner::maskingScan(){
   for (Point& point_ : temp_points_){
-    int mask_i = (point_.x+0.6)/global_resolution_ + global_width_/2; //Need to be fixed
-    int mask_j = (point_.y+0.6)/global_resolution_ + global_height_/2; //Need to be fixed
+    int mask_i = point_.x/global_resolution_ + global_width_/2 + 10; //Need to be fixed
+    int mask_j = point_.y/global_resolution_ + global_height_/2 + 10; //Need to be fixed
     try{
       if (costmap_[mask_j][mask_i] > 0){
+        //cout << costmap_[mask_j][mask_i] << endl;
+        //cout << "x: " << point_.x << ", " << "y: " << point_.y << endl;
+        //cout << "i: " << mask_i << ", " << "j: " << mask_j << endl;
         point_.x = scanner_origin_to_global_.point.x;
         point_.y = scanner_origin_to_global_.point.y;
       }
@@ -128,31 +147,32 @@ void ScanFiner::transformToScan(){
   geometry_msgs::PointStamped point_l;  // Point in local (scanner) coordinate frame
   geometry_msgs::PointStamped point_w;  // Point in global (world) coordinate frame
 
-  time_toscan_ = ros::Time::now();
-
-  point_l.header.stamp = time_toscan_;
+  point_l.header.stamp = ros::Time::now();
   point_l.header.frame_id = p_scanner_frame_;
 
-  point_w.header.stamp = time_toscan_;
+  point_w.header.stamp = ros::Time::now();
   point_w.header.frame_id = p_world_frame_;
 
-  try{
+  try {
+    tf_listener_.waitForTransform(p_scanner_frame_, p_world_frame_, ros::Time::now(), ros::Duration(3.0));
+
     for (const Point& point_ : temp_points_) {
         point_w.point.x = point_.x;
         point_w.point.y = point_.y;
-        tf_listener_toscan_.transformPoint(p_scanner_frame_, point_w, point_l);
+        tf_listener_.transformPoint(p_scanner_frame_, point_w, point_l);
         initial_points_.push_back(Point(point_l.point.x,point_l.point.y));
     }
   }
-  catch (tf::TransformException ex){
-    cout << "TO SCAN: not transformed ";
+  catch (tf::TransformException ex) {
     ROS_ERROR("%s",ex.what());
+    ros::Duration(0.2).sleep();
   }
 }
 
 
 void ScanFiner::publishFinedScan(const sensor_msgs::LaserScan::ConstPtr& scan) {
   sensor_msgs::LaserScan fined_scan_;
+  //std::vector<float> new_arr_;
   fined_scan_.header.stamp = ros::Time::now();
   fined_scan_.header.frame_id = p_scanner_frame_;
   fined_scan_.angle_min = scan->angle_min;
