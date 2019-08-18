@@ -9,6 +9,6 @@
     <param name="costmap_name"        type="string" value="costmap_node/costmap/costmap"/>
     <param name="output_name"         type="string" value="fined_scan"/>
 
-    <param name="max_scanner_range"   type="double" value="20.0"/>
+    <param name="max_scanner_range"   type="double" value="3.5"/>
   </node>
 </launch>

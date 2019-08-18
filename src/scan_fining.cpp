@@ -37,6 +37,8 @@ void ScanFiner::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
     if (r >= scan->range_min && r <= scan->range_max && r <= p_max_scanner_range_)
       initial_points_.push_back(Point::fromPolarCoords(r, phi));
+    else
+      initial_points_.push_back(Point::fromPolarCoords(0, 0));
   }
 
   if (!costmap_.empty())
